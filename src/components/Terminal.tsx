@@ -33,7 +33,7 @@ const Terminal: React.FC = () => {
     term.open(terminalRef.current);
     fitAddon.fit();
 
-    // Write welcome message in a block
+    // Write welcome message
     term.writeln('\x1b[44m\x1b[37m Welcome to the Terminal \x1b[0m');
     term.writeln('Type \x1b[1;33mhelp\x1b[0m for available commands\n');
 
@@ -44,33 +44,46 @@ const Terminal: React.FC = () => {
     let currentLine = '';
     const history: string[] = [];
     let historyIndex = 0;
+    let isNewBlock = true;
 
-    const writeCommandBlock = (command: string, output: string) => {
+    const startNewBlock = () => {
       term.writeln('\x1b[0;34m┌──────────────────────────────────────────────────────┐\x1b[0m');
-      term.writeln(`\x1b[0;34m│\x1b[0m \x1b[1;32m$\x1b[0m ${command}`);
-      if (output) {
-        term.writeln('\x1b[0;34m│\x1b[0m');
-        output.split('\n').forEach(line => {
-          term.writeln(`\x1b[0;34m│\x1b[0m ${line}`);
-        });
-      }
+      term.write('\x1b[0;34m│\x1b[0m \x1b[1;32m$\x1b[0m ');
+      isNewBlock = false;
+    };
+
+    const appendToCurrentBlock = (content: string) => {
+      content.split('\n').forEach(line => {
+        term.writeln('\x1b[0;34m│\x1b[0m ' + line);
+      });
+    };
+
+    const closeBlock = () => {
       term.writeln('\x1b[0;34m└──────────────────────────────────────────────────────┘\x1b[0m');
+      isNewBlock = true;
     };
 
     term.onKey(({ key, domEvent }) => {
       const ev = domEvent as KeyboardEvent;
       
+      if (isNewBlock) {
+        startNewBlock();
+      }
+
       // Handle special keys
       if (ev.keyCode === 13) { // Enter
-        term.write('\r\n');
+        appendToCurrentBlock(currentLine);
         if (currentLine.trim()) {
           const output = handleCommand(currentLine);
-          writeCommandBlock(currentLine, output);
+          if (output) {
+            term.writeln('\x1b[0;34m│\x1b[0m ');
+            appendToCurrentBlock(output);
+          }
           history.push(currentLine);
           historyIndex = history.length;
         }
+        closeBlock();
         currentLine = '';
-        term.write('\x1b[1;32m$\x1b[0m ');
       } else if (ev.keyCode === 8) { // Backspace
         if (currentLine.length > 0) {
           currentLine = currentLine.slice(0, -1);
@@ -128,11 +141,11 @@ const Terminal: React.FC = () => {
     // Helper to clear current line
     const clearCurrentLine = () => {
       term.write('\r\x1b[K');
-      term.write('\x1b[1;32m$\x1b[0m ');
+      term.write('\x1b[0;34m│\x1b[0m \x1b[1;32m$\x1b[0m ');
     };
 
-    // Initial prompt
-    term.write('\x1b[1;32m$\x1b[0m ');
+    // Start with a new block
+    startNewBlock();
 
     // Cleanup
     return () => {
