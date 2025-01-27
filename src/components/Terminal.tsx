@@ -33,8 +33,8 @@ const Terminal: React.FC = () => {
     term.open(terminalRef.current);
     fitAddon.fit();
 
-    // Write welcome message
-    term.writeln('\x1b[1;36mWelcome to the Terminal\x1b[0m');
+    // Write welcome message in a block
+    term.writeln('\x1b[44m\x1b[37m Welcome to the Terminal \x1b[0m');
     term.writeln('Type \x1b[1;33mhelp\x1b[0m for available commands\n');
 
     // Store terminal instance
@@ -45,16 +45,27 @@ const Terminal: React.FC = () => {
     const history: string[] = [];
     let historyIndex = 0;
 
+    const writeOutputBlock = (content: string) => {
+      term.writeln('\x1b[0;34m┌──────────────────────────────────────────────────────┐\x1b[0m');
+      content.split('\n').forEach(line => {
+        term.writeln(`\x1b[0;34m│\x1b[0m ${line}`);
+      });
+      term.writeln('\x1b[0;34m└──────────────────────────────────────────────────────┘\x1b[0m');
+    };
+
     term.onKey(({ key, domEvent }) => {
       const ev = domEvent as KeyboardEvent;
       
       // Handle special keys
       if (ev.keyCode === 13) { // Enter
         term.write('\r\n');
-        handleCommand(currentLine);
-        history.push(currentLine);
-        historyIndex = history.length;
+        if (currentLine.trim()) {
+          writeOutputBlock(handleCommand(currentLine));
+          history.push(currentLine);
+          historyIndex = history.length;
+        }
         currentLine = '';
+        term.write('\x1b[1;32m$\x1b[0m ');
       } else if (ev.keyCode === 8) { // Backspace
         if (currentLine.length > 0) {
           currentLine = currentLine.slice(0, -1);
@@ -91,26 +102,22 @@ const Terminal: React.FC = () => {
     window.addEventListener('resize', handleResize);
 
     // Command handler
-    const handleCommand = (command: string) => {
+    const handleCommand = (command: string): string => {
       const cmd = command.trim().toLowerCase();
       
       if (cmd === 'help') {
-        term.writeln('\r\nAvailable commands:');
-        term.writeln('  help     - Show this help message');
-        term.writeln('  clear    - Clear the terminal');
-        term.writeln('  echo     - Echo a message');
-        term.writeln('  date     - Show current date and time\n');
+        return 'Available commands:\n  help     - Show this help message\n  clear    - Clear the terminal\n  echo     - Echo a message\n  date     - Show current date and time';
       } else if (cmd === 'clear') {
         term.clear();
+        return '';
       } else if (cmd.startsWith('echo ')) {
-        term.writeln(command.slice(5));
+        return command.slice(5);
       } else if (cmd === 'date') {
-        term.writeln(new Date().toLocaleString());
+        return new Date().toLocaleString();
       } else if (cmd !== '') {
-        term.writeln(`Command not found: ${command}`);
+        return `Command not found: ${command}`;
       }
-
-      term.write('\x1b[1;32m$\x1b[0m ');
+      return '';
     };
 
     // Helper to clear current line
