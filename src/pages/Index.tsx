@@ -1,11 +1,18 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import Terminal from '../components/Terminal';
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-gradient-to-b from-background to-background/95 p-4 sm:p-8">
+      <div className="max-w-5xl mx-auto space-y-8">
+        <h1 className="text-4xl font-bold text-center text-primary animate-in fade-in slide-in-from-bottom duration-1000">
+          Interactive Terminal
+        </h1>
+        <p className="text-center text-muted-foreground animate-in fade-in slide-in-from-bottom duration-1000 delay-200">
+          A beautiful terminal experience right in your browser
+        </p>
+        <div className="animate-in fade-in slide-in-from-bottom duration-1000 delay-300">
+          <Terminal />
+        </div>
       </div>
     </div>
   );
