@@ -20,7 +20,6 @@ const Terminal: React.FC = () => {
         foreground: '#ffffff',
         cursor: '#ffffff',
         cursorAccent: '#000000',
-        selection: 'rgba(255, 255, 255, 0.3)',
       },
       allowTransparency: true,
     });
