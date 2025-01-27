@@ -45,11 +45,15 @@ const Terminal: React.FC = () => {
     const history: string[] = [];
     let historyIndex = 0;
 
-    const writeOutputBlock = (content: string) => {
+    const writeCommandBlock = (command: string, output: string) => {
       term.writeln('\x1b[0;34m┌──────────────────────────────────────────────────────┐\x1b[0m');
-      content.split('\n').forEach(line => {
-        term.writeln(`\x1b[0;34m│\x1b[0m ${line}`);
-      });
+      term.writeln(`\x1b[0;34m│\x1b[0m \x1b[1;32m$\x1b[0m ${command}`);
+      if (output) {
+        term.writeln('\x1b[0;34m│\x1b[0m');
+        output.split('\n').forEach(line => {
+          term.writeln(`\x1b[0;34m│\x1b[0m ${line}`);
+        });
+      }
       term.writeln('\x1b[0;34m└──────────────────────────────────────────────────────┘\x1b[0m');
     };
 
@@ -60,7 +64,8 @@ const Terminal: React.FC = () => {
       if (ev.keyCode === 13) { // Enter
         term.write('\r\n');
         if (currentLine.trim()) {
-          writeOutputBlock(handleCommand(currentLine));
+          const output = handleCommand(currentLine);
+          writeCommandBlock(currentLine, output);
           history.push(currentLine);
           historyIndex = history.length;
         }
